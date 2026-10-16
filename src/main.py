@@ -1,17 +1,17 @@
 from pathlib import Path
 
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import Depends, FastAPI, Form, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
+
+from src.db import Base, engine, get_db
+from src.models import Course
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE_URL = "sqlite:///./study_tracker.db"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Трекер учебных задач")
 
@@ -33,3 +33,40 @@ def index(request: Request) -> HTMLResponse:
         name="index.html",
         context={"title": "Трекер учебных задач"},
     )
+
+
+@app.get("/courses", response_class=HTMLResponse)
+def list_courses(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    """Страница со списком курсов и формой создания."""
+    courses = db.query(Course).order_by(Course.created_at.desc()).all()
+    return templates.TemplateResponse(
+        request=request,
+        name="courses.html",
+        context={"title": "Курсы", "courses": courses, "error": None},
+    )
+
+
+@app.post("/courses")
+def create_course(
+    request: Request,
+    title: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    """Создание курса. При пустом названии возвращается форма с ошибкой."""
+    if not title.strip():
+        courses = db.query(Course).order_by(Course.created_at.desc()).all()
+        return templates.TemplateResponse(
+            request=request,
+            name="courses.html",
+            context={
+                "title": "Курсы",
+                "courses": courses,
+                "error": "Название обязательно",
+            },
+            status_code=400,
+        )
+
+    course = Course(title=title.strip())
+    db.add(course)
+    db.commit()
+    return RedirectResponse(url="/courses", status_code=303)
