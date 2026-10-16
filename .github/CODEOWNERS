@@ -1,0 +1,10 @@
+# По умолчанию все файлы принадлежат владельцу репозитория
+*       @yazeffIvan
+
+# Инфраструктурные файлы — тоже он
+/.github/       @yazeffIvan
+/Dockerfile     @yazeffIvan
+/docker-compose.yml     @yazeffIvan
+
+# Документация
+/docs/          @yazeffIvan
