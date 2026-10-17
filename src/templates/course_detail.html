@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/courses">Курсы</a></li>
+    <li class="breadcrumb-item active">{{ course.title }}</li>
+  </ol>
+</nav>
+
+<h1 class="mb-4">{{ course.title }}</h1>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Добавить задание</h5>
+        <form method="post" action="/courses/{{ course.id }}/tasks">
+            <div class="row">
+                <div class="col-md-5 mb-3">
+                    <input type="text" class="form-control" name="title" placeholder="Название задания" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <input type="datetime-local" class="form-control" name="deadline">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <button type="submit" class="btn btn-primary w-100">Добавить</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if course.tasks %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Задание</th>
+            <th>Дедлайн</th>
+            <th>Статус</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in course.tasks %}
+        <tr>
+            <td>{{ task.id }}</td>
+            <td>{{ task.title }}</td>
+            <td>{{ task.deadline.strftime("%d.%m.%Y %H:%M") if task.deadline else "—" }}</td>
+            <td>
+                {% if task.status == "todo" %}
+                    <span class="badge bg-secondary">К выполнению</span>
+                {% elif task.status == "in_progress" %}
+                    <span class="badge bg-warning text-dark">В работе</span>
+                {% elif task.status == "done" %}
+                    <span class="badge bg-success">Сдано</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="alert alert-info">В этом курсе пока нет заданий.</div>
+{% endif %}
+{% endblock %}

@@ -1,13 +1,14 @@
+from datetime import datetime
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Form, Request
+from fastapi import Depends, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from src.db import Base, engine, get_db
-from src.models import Course
+from src.models import Course, Task
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -21,13 +22,11 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    """Проверка работоспособности сервиса."""
     return {"status": "ok"}
 
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request) -> HTMLResponse:
-    """Главная страница."""
     return templates.TemplateResponse(
         request=request,
         name="index.html",
@@ -37,7 +36,6 @@ def index(request: Request) -> HTMLResponse:
 
 @app.get("/courses", response_class=HTMLResponse)
 def list_courses(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
-    """Страница со списком курсов и формой создания."""
     courses = db.query(Course).order_by(Course.created_at.desc()).all()
     return templates.TemplateResponse(
         request=request,
@@ -52,17 +50,12 @@ def create_course(
     title: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    """Создание курса. При пустом названии возвращается форма с ошибкой."""
     if not title.strip():
         courses = db.query(Course).order_by(Course.created_at.desc()).all()
         return templates.TemplateResponse(
             request=request,
             name="courses.html",
-            context={
-                "title": "Курсы",
-                "courses": courses,
-                "error": "Название обязательно",
-            },
+            context={"title": "Курсы", "courses": courses, "error": "Название обязательно"},
             status_code=400,
         )
 
@@ -70,3 +63,51 @@ def create_course(
     db.add(course)
     db.commit()
     return RedirectResponse(url="/courses", status_code=303)
+
+
+@app.get("/courses/{course_id}", response_class=HTMLResponse)
+def course_detail(
+    request: Request, course_id: int, db: Session = Depends(get_db)
+) -> HTMLResponse:
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Курс не найден")
+
+    return templates.TemplateResponse(
+        request=request,
+        name="course_detail.html",
+        context={"title": course.title, "course": course, "error": None},
+    )
+
+
+@app.post("/courses/{course_id}/tasks")
+def create_task(
+    request: Request,
+    course_id: int,
+    title: str = Form(...),
+    deadline: str = Form(None),
+    db: Session = Depends(get_db),
+):
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Курс не найден")
+
+    if not title.strip():
+        return templates.TemplateResponse(
+            request=request,
+            name="course_detail.html",
+            context={"title": course.title, "course": course, "error": "Название задания обязательно"},
+            status_code=400,
+        )
+
+    parsed_deadline = None
+    if deadline:
+        try:
+            parsed_deadline = datetime.strptime(deadline, "%Y-%m-%dT%H:%M")
+        except ValueError:
+            pass
+
+    task = Task(title=title.strip(), deadline=parsed_deadline, course_id=course_id)
+    db.add(task)
+    db.commit()
+    return RedirectResponse(url=f"/courses/{course_id}", status_code=303)
