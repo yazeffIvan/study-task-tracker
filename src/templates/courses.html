@@ -41,8 +41,8 @@
         {% for course in courses %}
         <tr>
             <td>{{ course.id }}</td>
-            <td>{{ course.title }}</td>
-            <td class="text-center">0</td>
+            <td><a href="/courses/{{ course.id }}">{{ course.title }}</a></td>
+            <td class="text-center">{{ course.tasks | length }}</td>
             <td>{{ course.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
         </tr>
         {% endfor %}
