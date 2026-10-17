@@ -1,8 +1,37 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="text-center">
+<div class="text-center mb-5">
     <h1 class="mb-3">Трекер учебных задач</h1>
-    <p class="text-muted">Сервис в разработке. Скоро здесь появятся курсы и задания.</p>
+    <p class="text-muted">Управляйте своими курсами и дедлайнами в одном месте.</p>
+    <a href="/courses" class="btn btn-primary btn-lg">Перейти к курсам</a>
 </div>
+
+{% if upcoming_tasks %}
+<div class="card">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">Скоро дедлайн (ближайшие 7 дней)</h5>
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for task in upcoming_tasks %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <a href="/courses/{{ task.course_id }}" class="fw-bold text-decoration-none">
+                    {{ task.title }}
+                </a>
+                <br>
+                <small class="text-muted">Курс: {{ task.course.title }}</small>
+            </div>
+            <span class="badge bg-danger rounded-pill">
+                {{ task.deadline.strftime("%d.%m в %H:%M") }}
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% else %}
+<div class="alert alert-success">
+    На ближайшую неделю срочных дедлайнов нет. Отдыхайте!
+</div>
+{% endif %}
 {% endblock %}
