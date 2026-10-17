@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request
@@ -24,14 +24,6 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
-
-@app.get("/", response_class=HTMLResponse)
-def index(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={"title": "Трекер учебных задач"},
-    )
 
 
 @app.get("/courses", response_class=HTMLResponse)
@@ -111,3 +103,24 @@ def create_task(
     db.add(task)
     db.commit()
     return RedirectResponse(url=f"/courses/{course_id}", status_code=303)
+
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    """Главная страница: сводка по ближайшим дедлайнам."""
+    now = datetime.utcnow()
+    week_later = now + timedelta(days=7)
+
+    # Выбираем задания, у которых дедлайн наступит в ближайшие 7 дней и они еще не сданы
+    upcoming_tasks = (
+        db.query(Task)
+        .filter(Task.deadline >= now, Task.deadline <= week_later, Task.status != "done")
+        .order_by(Task.deadline.asc())
+        .all()
+    )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={"title": "Трекер учебных задач", "upcoming_tasks": upcoming_tasks},
+    )
+
