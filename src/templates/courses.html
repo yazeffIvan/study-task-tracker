@@ -33,6 +33,7 @@
         <tr>
             <th>#</th>
             <th>Название</th>
+            <th class="text-center">Заданий</th>
             <th>Создан</th>
         </tr>
     </thead>
@@ -41,12 +42,15 @@
         <tr>
             <td>{{ course.id }}</td>
             <td>{{ course.title }}</td>
+            <td class="text-center">0</td>
             <td>{{ course.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<p class="text-muted">Курсов пока нет. Создайте первый.</p>
+<div class="alert alert-info">
+    Курсов пока нет. Создайте первый курс с помощью формы выше.
+</div>
 {% endif %}
 {% endblock %}

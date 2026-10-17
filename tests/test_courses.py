@@ -56,3 +56,17 @@ def test_create_course_missing_title_shows_error(client):
     response = client.post("/courses", data={"title": ""})
     assert response.status_code == 400
     assert "Название обязательно" in response.text
+
+def test_courses_page_shows_empty_state(client):
+    response = client.get("/courses")
+    assert response.status_code == 200
+    assert "Курсов пока нет" in response.text
+    assert "Создайте первый курс" in response.text
+
+
+def test_courses_page_shows_task_count_column(client):
+    client.post("/courses", data={"title": "История"})
+    response = client.get("/courses")
+    assert "Заданий" in response.text
+    assert "История" in response.text
+
