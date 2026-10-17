@@ -60,3 +60,40 @@ def test_create_task_success(client):
     assert "Лабораторная 1" in response.text
     assert "31.12.2026 23:59" in response.text
     assert "К выполнению" in response.text
+
+def test_course_detail_404_for_missing_course(client):
+    """Открытие несуществующего курса даёт 404."""
+    response = client.get("/courses/999")
+    assert response.status_code == 404
+
+
+def test_create_task_for_missing_course(client):
+    """Попытка добавить задание в несуществующий курс даёт 404."""
+    response = client.post(
+        "/courses/999/tasks",
+        data={"title": "Задание"},
+    )
+    assert response.status_code == 404
+
+
+def test_create_task_empty_title_shows_error(client):
+    """Пустое название задания возвращает ошибку."""
+    client.post("/courses", data={"title": "Биология"})
+    response = client.post(
+        "/courses/1/tasks",
+        data={"title": "   ", "deadline": ""},
+    )
+    assert response.status_code == 400
+    assert "Название задания обязательно" in response.text
+
+
+def test_create_task_with_invalid_deadline(client):
+    """Некорректный формат дедлайна не падает, а сохраняется как None."""
+    client.post("/courses", data={"title": "Химия"})
+    response = client.post(
+        "/courses/1/tasks",
+        data={"title": "Опыт", "deadline": "not-a-date"},
+        follow_redirects=False,
+    )
+    # Мы не блокируем сохранение при некорректной дате, но ValueError перехватывается.
+    assert response.status_code == 303
