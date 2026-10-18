@@ -97,3 +97,24 @@ def test_create_task_with_invalid_deadline(client):
     )
     # Мы не блокируем сохранение при некорректной дате, но ValueError перехватывается.
     assert response.status_code == 303
+
+
+def test_update_task_status(client):
+    client.post("/courses", data={"title": "Тест"})
+    client.post("/courses/1/tasks", data={"title": "Задача"})
+
+    # Меняем статус на in_progress
+    response = client.post("/tasks/1/status", data={"status": "in_progress"}, follow_redirects=False)
+    assert response.status_code == 303
+
+    response = client.get("/courses/1")
+    assert 'value="in_progress" selected' in response.text
+
+
+def test_update_task_status_invalid(client):
+    client.post("/courses", data={"title": "Тест"})
+    client.post("/courses/1/tasks", data={"title": "Задача"})
+
+    # Недопустимый статус
+    response = client.post("/tasks/1/status", data={"status": "invalid"})
+    assert response.status_code == 400
