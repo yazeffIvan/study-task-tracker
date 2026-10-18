@@ -11,7 +11,7 @@
 
 | Слой | Технология |
 |---|---|
-| Язык | Python 3.11+ |
+| Язык | Python 3.11 |
 | Бэкенд | FastAPI |
 | Шаблоны | Jinja2 |
 | CSS | Bootstrap 5 |
@@ -39,14 +39,10 @@ docker compose up
 ## Документация этапов
 
 - **ЛР1. Планирование** → [docs/01-planning/](docs/01-planning/) (тег `lab1`)
-- ЛР2. Инженерный конвейер → `docs/02-pipeline/`
-- ЛР3. Качество и производительность → `docs/03-quality/`
-- ЛР4. Метрики и улучшение → `docs/04-metrics/`
+- ЛР2. Инженерный конвейер → `docs/02-pipeline/` (тег `lab2`)
+- ЛР3. Качество и производительность → `docs/03-quality/` (тег `lab3`)
+- ЛР4. Метрики и улучшение → `docs/04-metrics/` (тег `lab4`)
 
 ## Доска задач
 
 GitHub Projects: https://github.com/users/yazeffIvan/projects/1
-
-## Версии
-
-- `lab1` — этап ЛР1 (планирование и проектирование процесса)
