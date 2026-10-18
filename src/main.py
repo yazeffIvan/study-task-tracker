@@ -145,3 +145,73 @@ def index(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
         context={"title": "Трекер учебных задач", "upcoming_tasks": upcoming_tasks},
     )
 
+
+@app.post("/courses/{course_id}/delete")
+def delete_course(course_id: int, db: Session = Depends(get_db)):
+    """Удаление курса и всех его заданий."""
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Курс не найден")
+    db.delete(course)
+    db.commit()
+    return RedirectResponse(url="/courses", status_code=303)
+
+
+@app.post("/tasks/{task_id}/delete")
+def delete_task(task_id: int, db: Session = Depends(get_db)):
+    """Удаление задания."""
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Задание не найдено")
+    course_id = task.course_id
+    db.delete(task)
+    db.commit()
+    return RedirectResponse(url=f"/courses/{course_id}", status_code=303)
+
+
+@app.get("/tasks/{task_id}/edit", response_class=HTMLResponse)
+def edit_task_page(request: Request, task_id: int, db: Session = Depends(get_db)):
+    """Страница редактирования задания."""
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Задание не найдено")
+
+    return templates.TemplateResponse(
+        request=request,
+        name="task_edit.html",
+        context={"title": "Редактирование", "task": task, "error": None},
+    )
+
+
+@app.post("/tasks/{task_id}/edit")
+def edit_task(
+        request: Request,
+        task_id: int,
+        title: str = Form(...),
+        deadline: str = Form(None),
+        db: Session = Depends(get_db),
+):
+    """Обработка формы редактирования."""
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Задание не найдено")
+
+    if not title.strip():
+        return templates.TemplateResponse(
+            request=request,
+            name="task_edit.html",
+            context={"title": "Редактирование", "task": task, "error": "Название обязательно"},
+            status_code=400,
+        )
+
+    parsed_deadline = None
+    if deadline:
+        try:
+            parsed_deadline = datetime.strptime(deadline, "%Y-%m-%dT%H:%M")
+        except ValueError:
+            pass
+
+    task.title = title.strip()
+    task.deadline = parsed_deadline
+    db.commit()
+    return RedirectResponse(url=f"/courses/{task.course_id}", status_code=303)
