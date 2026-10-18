@@ -5,10 +5,3 @@ services:
     region: frankfurt
     plan: free
     dockerfilePath: ./Dockerfile
-    envVars:
-      - key: DATABASE_URL
-        value: sqlite:////data/study_tracker.db
-    disk:
-      name: tracker-data
-      mountPath: /data
-      sizeGB: 1
