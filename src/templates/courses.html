@@ -1,56 +1,54 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="mb-4">Курсы</h1>
+<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <h2 class="fw-bold mb-0">Мои курсы</h2>
+</div>
 
 {% if error %}
-<div class="alert alert-danger">{{ error }}</div>
+<div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</div>
 {% endif %}
 
-<div class="card mb-4">
+<div class="card mb-5 bg-light border-0">
     <div class="card-body">
-        <h5 class="card-title">Добавить курс</h5>
-        <form method="post" action="/courses">
-            <div class="mb-3">
-                <label for="title" class="form-label">Название</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id="title"
-                    name="title"
-                    maxlength="200"
-                    required
-                >
+        <h5 class="card-title fw-bold mb-3">Добавить новый курс</h5>
+        <form method="post" action="/courses" class="row g-3">
+            <div class="col-md-9">
+                <input type="text" class="form-control form-control-lg" name="title" placeholder="Название курса (например, Математический анализ)" required maxlength="200">
             </div>
-            <button type="submit" class="btn btn-primary">Создать</button>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-success btn-lg w-100"><i class="bi bi-plus-lg me-1"></i>Создать</button>
+            </div>
         </form>
     </div>
 </div>
 
-{% if courses %}
-<table class="table">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Название</th>
-            <th class="text-center">Заданий</th>
-            <th>Создан</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for course in courses %}
-        <tr>
-            <td>{{ course.id }}</td>
-            <td><a href="/courses/{{ course.id }}">{{ course.title }}</a></td>
-            <td class="text-center">{{ course.tasks | length }}</td>
-            <td>{{ course.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<div class="alert alert-info">
-    Курсов пока нет. Создайте первый курс с помощью формы выше.
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for course in courses %}
+    <div class="col">
+        <div class="card h-100 bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title fw-bold text-primary mb-0">
+                        <a href="/courses/{{ course.id }}" class="text-decoration-none">{{ course.title }}</a>
+                    </h5>
+                </div>
+                <p class="card-text text-muted small mb-3">
+                    <i class="bi bi-calendar3 me-1"></i>Создан: {{ course.created_at.strftime("%d.%m.%Y") }}
+                </p>
+                <div class="d-flex justify-content-between align-items-center mt-auto">
+                    <span class="badge bg-secondary rounded-pill"><i class="bi bi-list-task me-1"></i>Заданий: {{ course.tasks | length }}</span>
+                    <a href="/courses/{{ course.id }}" class="btn btn-outline-primary btn-sm stretched-link">Открыть <i class="bi bi-chevron-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <i class="bi bi-journal-x text-muted" style="font-size: 4rem;"></i>
+        <h4 class="mt-3 text-muted">У вас пока нет курсов</h4>
+        <p class="text-muted">Создайте первый курс с помощью формы выше, чтобы начать планировать учебу.</p>
+    </div>
+    {% endfor %}
 </div>
-{% endif %}
 {% endblock %}
