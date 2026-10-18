@@ -4,11 +4,38 @@
 <nav aria-label="breadcrumb" class="mt-2">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="/courses" class="text-decoration-none">Мои курсы</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ course.title }}</li>
+    <li class="breadcrumb-item active">{{ course.title }}</li>
   </ol>
 </nav>
 
-<h2 class="fw-bold mb-4">{{ course.title }}</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">{{ course.title }}</h2>
+    <form method="post" action="/courses/{{ course.id }}/delete" onsubmit="return confirm('Удалить курс и все его задания?');">
+        <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Удалить курс</button>
+    </form>
+</div>
+
+<!-- Статистика (US-10) -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-light border-0 text-center py-3">
+            <h5 class="text-secondary mb-1">К выполнению</h5>
+            <span class="fs-3 fw-bold">{{ course.tasks | selectattr("status", "equalto", "todo") | list | length }}</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning bg-opacity-10 border-0 text-center py-3">
+            <h5 class="text-warning-emphasis mb-1">В работе</h5>
+            <span class="fs-3 fw-bold text-warning-emphasis">{{ course.tasks | selectattr("status", "equalto", "in_progress") | list | length }}</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success bg-opacity-10 border-0 text-center py-3">
+            <h5 class="text-success mb-1">Сдано</h5>
+            <span class="fs-3 fw-bold text-success">{{ course.tasks | selectattr("status", "equalto", "done") | list | length }}</span>
+        </div>
+    </div>
+</div>
 
 {% if error %}
 <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</div>
@@ -32,12 +59,15 @@
 </div>
 
 {% if course.tasks %}
-<div class="card bg-white">
+<div class="card bg-white shadow-sm border-0">
     <ul class="list-group list-group-flush">
         {% for task in course.tasks %}
         <li class="list-group-item d-flex justify-content-between align-items-center py-3">
-            <div>
-                <h6 class="mb-1 fw-bold">{{ task.title }}</h6>
+            <div class="flex-grow-1">
+                <div class="d-flex align-items-center mb-1">
+                    <h6 class="mb-0 fw-bold me-3">{{ task.title }}</h6>
+                    <a href="/tasks/{{ task.id }}/edit" class="text-muted text-decoration-none small" title="Редактировать"><i class="bi bi-pencil-square"></i></a>
+                </div>
                 <small class="text-muted">
                     {% if task.deadline %}
                         <i class="bi bi-clock me-1"></i>Сдать до: {{ task.deadline.strftime("%d.%m.%Y %H:%M") }}
@@ -46,7 +76,7 @@
                     {% endif %}
                 </small>
             </div>
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center gap-3">
                 <form method="post" action="/tasks/{{ task.id }}/status" class="mb-0">
                     <select name="status" class="form-select form-select-sm fw-bold border-0 shadow-sm
                         {% if task.status == 'todo' %}badge-todo{% elif task.status == 'in_progress' %}badge-in-progress{% else %}badge-done{% endif %}"
@@ -55,6 +85,9 @@
                         <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>В работе</option>
                         <option value="done" {% if task.status == 'done' %}selected{% endif %}>Сдано</option>
                     </select>
+                </form>
+                <form method="post" action="/tasks/{{ task.id }}/delete" class="mb-0" onsubmit="return confirm('Удалить задание?');">
+                    <button type="submit" class="btn btn-link text-danger p-0" title="Удалить"><i class="bi bi-trash fs-5"></i></button>
                 </form>
             </div>
         </li>

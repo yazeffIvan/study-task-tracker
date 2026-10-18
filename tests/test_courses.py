@@ -36,7 +36,7 @@ def test_courses_page_shows_empty_state(client):
 def test_courses_page_shows_task_count_column(client):
     client.post("/courses", data={"title": "История"})
     response = client.get("/courses")
-    assert "Заданий" in response.text
+    assert "заданий" in response.text
     assert "История" in response.text
 
 
@@ -118,3 +118,68 @@ def test_update_task_status_invalid(client):
     # Недопустимый статус
     response = client.post("/tasks/1/status", data={"status": "invalid"})
     assert response.status_code == 400
+
+
+def test_delete_task(client):
+    client.post("/courses", data={"title": "Удаление"})
+    client.post("/courses/1/tasks", data={"title": "Задача"})
+    response = client.post("/tasks/1/delete", follow_redirects=False)
+    assert response.status_code == 303
+    assert "Задача" not in client.get("/courses/1").text
+
+def test_delete_course(client):
+    client.post("/courses", data={"title": "Удаление курса"})
+    response = client.post("/courses/1/delete", follow_redirects=False)
+    assert response.status_code == 303
+    assert "Удаление курса" not in client.get("/courses").text
+
+def test_edit_task_page(client):
+    client.post("/courses", data={"title": "Редактирование"})
+    client.post("/courses/1/tasks", data={"title": "Старое"})
+    response = client.get("/tasks/1/edit")
+    assert response.status_code == 200
+    assert "Старое" in response.text
+
+def test_edit_task_success(client):
+    client.post("/courses", data={"title": "Редактирование"})
+    client.post("/courses/1/tasks", data={"title": "Старое"})
+    response = client.post("/tasks/1/edit", data={"title": "Новое", "deadline": ""}, follow_redirects=False)
+    assert response.status_code == 303
+    assert "Новое" in client.get("/courses/1").text
+def test_delete_course_404(client):
+    response = client.post("/courses/999/delete")
+    assert response.status_code == 404
+
+
+def test_delete_task_404(client):
+    response = client.post("/tasks/999/delete")
+    assert response.status_code == 404
+
+
+def test_edit_task_page_404(client):
+    response = client.get("/tasks/999/edit")
+    assert response.status_code == 404
+
+
+def test_edit_task_empty_title_error(client):
+    client.post("/courses", data={"title": "Курс"})
+    client.post("/courses/1/tasks", data={"title": "Старое"})
+    response = client.post("/tasks/1/edit", data={"title": "   "})
+    assert response.status_code == 400
+    assert "Название обязательно" in response.text
+
+
+def test_edit_task_invalid_deadline(client):
+    client.post("/courses", data={"title": "Курс"})
+    client.post("/courses/1/tasks", data={"title": "Задача"})
+    response = client.post(
+        "/tasks/1/edit",
+        data={"title": "Новая задача", "deadline": "не-дата"},
+        follow_redirects=False
+    )
+    assert response.status_code == 303
+
+
+def test_edit_task_404_post(client):
+    response = client.post("/tasks/999/edit", data={"title": "Тест"})
+    assert response.status_code == 404

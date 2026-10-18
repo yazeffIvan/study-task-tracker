@@ -9,15 +9,16 @@
 <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</div>
 {% endif %}
 
-<div class="card mb-5 bg-light border-0">
-    <div class="card-body">
-        <h5 class="card-title fw-bold mb-3">Добавить новый курс</h5>
+<!-- Форма добавления (сделаем ее более аккуратной) -->
+<div class="card mb-5">
+    <div class="card-body p-4">
+        <h5 class="card-title fw-bold mb-3">Новый курс</h5>
         <form method="post" action="/courses" class="row g-3">
             <div class="col-md-9">
-                <input type="text" class="form-control form-control-lg" name="title" placeholder="Название курса (например, Математический анализ)" required maxlength="200">
+                <input type="text" class="form-control form-control-lg bg-light" name="title" placeholder="Например: Математический анализ" required maxlength="200">
             </div>
             <div class="col-md-3">
-                <button type="submit" class="btn btn-success btn-lg w-100"><i class="bi bi-plus-lg me-1"></i>Создать</button>
+                <button type="submit" class="btn btn-primary btn-lg w-100"><i class="bi bi-plus-lg me-1"></i>Создать</button>
             </div>
         </form>
     </div>
@@ -26,28 +27,28 @@
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
     {% for course in courses %}
     <div class="col">
-        <div class="card h-100 bg-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h5 class="card-title fw-bold text-primary mb-0">
-                        <a href="/courses/{{ course.id }}" class="text-decoration-none">{{ course.title }}</a>
-                    </h5>
-                </div>
-                <p class="card-text text-muted small mb-3">
-                    <i class="bi bi-calendar3 me-1"></i>Создан: {{ course.created_at.strftime("%d.%m.%Y") }}
+        <div class="card h-100">
+            <div class="card-body p-4 d-flex flex-column">
+                <h5 class="card-title fw-bold mb-2">
+                    <a href="/courses/{{ course.id }}" class="text-decoration-none text-dark stretched-link">{{ course.title }}</a>
+                </h5>
+                <p class="card-text text-muted small mb-4">
+                    <i class="bi bi-calendar3 me-1"></i>{{ course.created_at.strftime("%d.%m.%Y") }}
                 </p>
-                <div class="d-flex justify-content-between align-items-center mt-auto">
-                    <span class="badge bg-secondary rounded-pill"><i class="bi bi-list-task me-1"></i>Заданий: {{ course.tasks | length }}</span>
-                    <a href="/courses/{{ course.id }}" class="btn btn-outline-primary btn-sm stretched-link">Открыть <i class="bi bi-chevron-right ms-1"></i></a>
+                <div class="mt-auto d-flex justify-content-between align-items-center">
+                    <span class="badge bg-light text-dark border"><i class="bi bi-list-task me-1"></i>{{ course.tasks | length }} заданий</span>
+                    <span class="text-primary fw-medium small">Открыть <i class="bi bi-arrow-right"></i></span>
                 </div>
             </div>
         </div>
     </div>
     {% else %}
     <div class="col-12 text-center py-5">
-        <i class="bi bi-journal-x text-muted" style="font-size: 4rem;"></i>
-        <h4 class="mt-3 text-muted">У вас пока нет курсов</h4>
-        <p class="text-muted">Создайте первый курс с помощью формы выше, чтобы начать планировать учебу.</p>
+        <div class="p-5 bg-white rounded-4 border">
+            <i class="bi bi-journal-x text-muted" style="font-size: 4rem;"></i>
+            <h4 class="mt-3 text-muted">У вас пока нет курсов</h4>
+            <p class="text-muted">Создайте первый курс с помощью формы выше, чтобы начать планировать учебу.</p>
+        </div>
     </div>
     {% endfor %}
 </div>
