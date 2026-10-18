@@ -29,7 +29,7 @@ def test_create_course_missing_title_shows_error(client):
 def test_courses_page_shows_empty_state(client):
     response = client.get("/courses")
     assert response.status_code == 200
-    assert "Курсов пока нет" in response.text
+    assert "У вас пока нет курсов" in response.text
     assert "Создайте первый курс" in response.text
 
 
