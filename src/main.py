@@ -104,6 +104,27 @@ def create_task(
     db.commit()
     return RedirectResponse(url=f"/courses/{course_id}", status_code=303)
 
+
+@app.post("/tasks/{task_id}/status")
+def update_task_status(
+        task_id: int,
+        status: str = Form(...),
+        db: Session = Depends(get_db),
+):
+    """Обновление статуса задания."""
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="Задание не найдено")
+
+    if status not in ["todo", "in_progress", "done"]:
+        raise HTTPException(status_code=400, detail="Недопустимый статус")
+
+    task.status = status
+    db.commit()
+
+    return RedirectResponse(url=f"/courses/{task.course_id}", status_code=303)
+
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
     """Главная страница: сводка по ближайшим дедлайнам."""

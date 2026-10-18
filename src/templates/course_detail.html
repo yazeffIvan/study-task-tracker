@@ -34,7 +34,7 @@
 </div>
 
 {% if course.tasks %}
-<table class="table">
+<table class="table align-middle">
     <thead>
         <tr>
             <th>#</th>
@@ -48,15 +48,21 @@
         <tr>
             <td>{{ task.id }}</td>
             <td>{{ task.title }}</td>
-            <td>{{ task.deadline.strftime("%d.%m.%Y %H:%M") if task.deadline else "—" }}</td>
             <td>
-                {% if task.status == "todo" %}
-                    <span class="badge bg-secondary">К выполнению</span>
-                {% elif task.status == "in_progress" %}
-                    <span class="badge bg-warning text-dark">В работе</span>
-                {% elif task.status == "done" %}
-                    <span class="badge bg-success">Сдано</span>
+                {% if task.deadline %}
+                    {{ task.deadline.strftime("%d.%m.%Y %H:%M") }}
+                {% else %}
+                    <span class="text-muted">—</span>
                 {% endif %}
+            </td>
+            <td>
+                <form method="post" action="/tasks/{{ task.id }}/status" class="d-flex align-items-center gap-2 mb-0">
+                    <select name="status" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
+                        <option value="todo" {% if task.status == 'todo' %}selected{% endif %}>К выполнению</option>
+                        <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>В работе</option>
+                        <option value="done" {% if task.status == 'done' %}selected{% endif %}>Сдано</option>
+                    </select>
+                </form>
             </td>
         </tr>
         {% endfor %}
